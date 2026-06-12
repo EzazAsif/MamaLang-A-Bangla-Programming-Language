@@ -1,0 +1,60 @@
+{
+  "name": "mamalang",
+  "version": "0.1.0",
+  "description": "MamaLang - A Bengali meme-style programming language that compiles to JavaScript",
+  "main": "dist/index.js",
+  "bin": {
+    "mama": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc",
+    "test": "jest"
+  },
+  "keywords": [
+    "mamalang",
+    "bengali",
+    "meme",
+    "programming",
+    "language",
+    "transpiler"
+  ],
+  "author": "MamaLang Contributors",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md"
+  ]
+}
