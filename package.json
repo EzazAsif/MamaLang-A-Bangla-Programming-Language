@@ -1,6 +1,6 @@
 {
   "name": "mamalang",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "MamaLang - A Bengali meme-style programming language that compiles to JavaScript",
   "main": "dist/index.js",
   "bin": {

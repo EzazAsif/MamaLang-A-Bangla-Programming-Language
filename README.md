@@ -5,13 +5,13 @@
 - [x] Scaffold
 - [x] Lexer
 - [x] Parser + AST
-- [ ] Generator
+- [x] Code generator
 - [ ] CLI
+- [ ] VS Code extension
 
-## Parser
-
-Recursive-descent. Produces a typed AST for all language constructs.
+## Try it
 
 ```bash
-npm install && npm run build && npm test
+npm install && npm run build
+node -e "const {compile}=require('./dist/index.js'); const {js}=compile('mama bolo(\"Hello\")'); console.log(js)"
 ```
