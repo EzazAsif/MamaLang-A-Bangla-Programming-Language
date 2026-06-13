@@ -4,10 +4,14 @@
 
 - [x] Scaffold
 - [x] Lexer
-- [ ] Parser
+- [x] Parser + AST
 - [ ] Generator
 - [ ] CLI
 
-## Lexer tokens
+## Parser
 
-`mama dhori` `mama pakka` `mama bolo` `mama jodi` `mama nahole` `mama ghuro` `mama jotokkhon` `mama kaj` `mama ferot` `mama shotto` `mama miththa` `mama khali` `mama hasi` `mama kanna` `mama ghum` `mama panic` `mama dhora`
+Recursive-descent. Produces a typed AST for all language constructs.
+
+```bash
+npm install && npm run build && npm test
+```
