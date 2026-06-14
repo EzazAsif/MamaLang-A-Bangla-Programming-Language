@@ -1,0 +1,28 @@
+// MamaLang - Calculator Example
+
+mama kaj jog(a, b) {
+    mama ferot a + b
+}
+
+mama kaj biyog(a, b) {
+    mama ferot a - b
+}
+
+mama kaj goon(a, b) {
+    mama ferot a * b
+}
+
+mama kaj bhag(a, b) {
+    mama jodi (b === 0) {
+        mama bolo("Error: Shunno diye bhag hoy na! 🚫")
+        mama ferot mama khali
+    }
+    mama ferot a / b
+}
+
+mama bolo("=== MamaLang Calculator ===")
+mama bolo("10 + 5 = " + jog(10, 5))
+mama bolo("10 - 5 = " + biyog(10, 5))
+mama bolo("10 * 5 = " + goon(10, 5))
+mama bolo("10 / 5 = " + bhag(10, 5))
+mama bolo("10 / 0 = " + bhag(10, 0))

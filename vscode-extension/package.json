@@ -1,0 +1,80 @@
+{
+  "name": "mamalang-vscode",
+  "displayName": "MamaLang Language Support",
+  "description": "Syntax highlighting, snippets, and language support for MamaLang",
+  "version": "1.0.0",
+  "publisher": "mamalang",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages", "Snippets"],
+  "icon": "icon.png",
+  "keywords": ["mamalang", "bengali", "meme", "language"],
+  "activationEvents": ["onLanguage:mamalang"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "mamalang",
+        "aliases": ["MamaLang", "mama"],
+        "extensions": [".mama"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mamalang",
+        "scopeName": "source.mama",
+        "path": "./syntaxes/mamalang.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "mamalang",
+        "path": "./snippets/mamalang.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "mamalang.run",
+        "title": "MamaLang: Run Current File",
+        "icon": "$(play)"
+      },
+      {
+        "command": "mamalang.compile",
+        "title": "MamaLang: Compile Current File"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "mamalang.run",
+          "when": "resourceExtname == .mama",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "MamaLang",
+      "properties": {
+        "mamalang.executablePath": {
+          "type": "string",
+          "default": "mama",
+          "description": "Path to the MamaLang CLI executable"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.0.0"
+  }
+}

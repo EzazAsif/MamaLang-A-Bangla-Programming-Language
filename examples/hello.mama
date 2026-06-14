@@ -1,0 +1,8 @@
+// MamaLang - Hello World Example
+
+mama bolo("Assalamu Alaikum, Duniya! 🌍")
+
+mama dhori naam = "MamaLang"
+mama bolo("Tumi ki jano? Ami " + naam + " bolchi!")
+
+mama hasi()

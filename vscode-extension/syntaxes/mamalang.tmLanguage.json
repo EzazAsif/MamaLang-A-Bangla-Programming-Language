@@ -1,0 +1,84 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MamaLang",
+  "scopeName": "source.mama",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords" },
+    { "include": "#operators" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.mama",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.mama",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.mama",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.mama", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.single.mama",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            { "name": "constant.character.escape.mama", "match": "\\\\." }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.mama",
+      "match": "\\b[0-9]+(\\.[0-9]+)?\\b"
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.mama",
+          "match": "\\b(mama)\\s+(jodi|nahole|ghuro|jotokkhon|panic|dhora)\\b"
+        },
+        {
+          "name": "keyword.declaration.mama",
+          "match": "\\b(mama)\\s+(dhori|pakka|kaj)\\b"
+        },
+        {
+          "name": "keyword.other.mama",
+          "match": "\\b(mama)\\s+(ferot|opekkha)\\b"
+        },
+        {
+          "name": "support.function.mama",
+          "match": "\\b(mama)\\s+(bolo|hasi|kanna|ghum)\\b"
+        },
+        {
+          "name": "constant.language.mama",
+          "match": "\\b(mama)\\s+(shotto|miththa|khali)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "name": "keyword.operator.mama",
+      "match": "(===|!==|==|!=|<=|>=|&&|\\|\\||[+\\-*/%<>=!])"
+    },
+    "identifiers": {
+      "name": "variable.other.mama",
+      "match": "\\b[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
+    }
+  }
+}

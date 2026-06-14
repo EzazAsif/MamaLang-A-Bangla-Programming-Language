@@ -1,0 +1,91 @@
+{
+  "Variable Declaration": {
+    "prefix": "md",
+    "body": ["mama dhori ${1:name} = ${2:value}"],
+    "description": "Declare a variable (let)"
+  },
+  "Constant Declaration": {
+    "prefix": "mp",
+    "body": ["mama pakka ${1:name} = ${2:value}"],
+    "description": "Declare a constant (const)"
+  },
+  "Print": {
+    "prefix": "mb",
+    "body": ["mama bolo(${1:\"Hello\"})"],
+    "description": "Print to console"
+  },
+  "If Statement": {
+    "prefix": "mj",
+    "body": [
+      "mama jodi (${1:condition}) {",
+      "\t${2:// body}",
+      "}"
+    ],
+    "description": "If statement"
+  },
+  "If-Else Statement": {
+    "prefix": "mjn",
+    "body": [
+      "mama jodi (${1:condition}) {",
+      "\t${2:// if body}",
+      "} mama nahole {",
+      "\t${3:// else body}",
+      "}"
+    ],
+    "description": "If-else statement"
+  },
+  "For Loop": {
+    "prefix": "mg",
+    "body": [
+      "mama ghuro (mama dhori ${1:i} = 0; ${1:i} < ${2:10}; ${1:i}++) {",
+      "\t${3:// body}",
+      "}"
+    ],
+    "description": "For loop"
+  },
+  "While Loop": {
+    "prefix": "mjt",
+    "body": [
+      "mama jotokkhon (${1:condition}) {",
+      "\t${2:// body}",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "Function Declaration": {
+    "prefix": "mk",
+    "body": [
+      "mama kaj ${1:name}(${2:params}) {",
+      "\t${3:// body}",
+      "\tmama ferot ${4:result}",
+      "}"
+    ],
+    "description": "Function declaration"
+  },
+  "Try-Catch": {
+    "prefix": "mpd",
+    "body": [
+      "mama panic {",
+      "\t${1:// risky code}",
+      "} mama dhora(${2:err}) {",
+      "\tmama bolo(${2:err})",
+      "}"
+    ],
+    "description": "Try-catch block"
+  },
+  "Sleep": {
+    "prefix": "mgh",
+    "body": ["mama ghum(${1:1000})"],
+    "description": "Sleep/wait for milliseconds"
+  },
+  "Laugh": {
+    "prefix": "mha",
+    "body": ["mama hasi()"],
+    "description": "Print laughing emoji 😂"
+  },
+  "Cry": {
+    "prefix": "mka",
+    "body": ["mama kanna()"],
+    "description": "Print crying emoji 😭"
+  }
+}

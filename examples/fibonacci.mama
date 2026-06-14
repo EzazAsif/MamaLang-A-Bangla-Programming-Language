@@ -1,0 +1,13 @@
+// MamaLang - Fibonacci Example
+
+mama kaj fib(n) {
+    mama jodi (n <= 1) {
+        mama ferot n
+    }
+    mama ferot fib(n - 1) + fib(n - 2)
+}
+
+mama bolo("Fibonacci sequence:")
+mama ghuro (mama dhori i = 0; i < 10; i++) {
+    mama bolo("fib(" + i + ") = " + fib(i))
+}
