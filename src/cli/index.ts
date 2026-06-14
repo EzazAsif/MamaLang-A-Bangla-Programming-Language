@@ -1,212 +1,269 @@
 #!/usr/bin/env node
 /**
- * MamaLang CLI  –  zero runtime dependencies (pure Node.js)
+ * MamaLang CLI
  *
  * Commands:
- *   mama run <file>       compile + execute
- *   mama compile <file>   compile to .js only
- *   mama repl             interactive REPL
- *   mama init [dir]       scaffold a new project
- *   mama version          print version
+ *   mama run <file>      – compile + execute
+ *   mama compile <file>  – compile to .js only
+ *   mama repl            – interactive REPL
+ *   mama version         – print version
+ *   mama init            – scaffold a new MamaLang project
  */
 
-import * as fs       from 'fs';
-import * as path     from 'path';
-import * as os       from 'os';
-import * as readline from 'readline';
+import { Command }                     from 'commander';
+import * as fs                         from 'fs';
+import * as path                       from 'path';
+import * as readline                   from 'readline';
 import { compile, VERSION, CompileError } from '../index';
 
-// ── ANSI helpers ──────────────────────────────────────────────────────────────
-const R = '\x1b[0m';
-const red    = (s: string) => `\x1b[31m${s}${R}`;
-const green  = (s: string) => `\x1b[32m${s}${R}`;
-const yellow = (s: string) => `\x1b[33m${s}${R}`;
-const cyan   = (s: string) => `\x1b[36m${s}${R}`;
-const bold   = (s: string) => `\x1b[1m${s}${R}`;
-const magenta= (s: string) => `\x1b[35m${s}${R}`;
+// ── Chalk-lite (avoid ESM issues) ─────────────────────────────────────────────
+// We use ANSI codes directly for maximum compatibility.
+const C = {
+  reset:  '\x1b[0m',
+  bold:   '\x1b[1m',
+  red:    '\x1b[31m',
+  green:  '\x1b[32m',
+  yellow: '\x1b[33m',
+  cyan:   '\x1b[36m',
+  magenta:'\x1b[35m',
+};
+const color = (c: string, s: string) => `${c}${s}${C.reset}`;
 
-// ── Arg parsing ───────────────────────────────────────────────────────────────
-const [,, cmd, ...rest] = process.argv;
+// ── Program ───────────────────────────────────────────────────────────────────
 
-switch (cmd) {
-  case 'run':     cmdRun(rest);     break;
-  case 'compile': cmdCompile(rest); break;
-  case 'repl':    cmdRepl();        break;
-  case 'init':    cmdInit(rest);    break;
-  case 'version':
-  case '-v':
-  case '--version':
-    cmdVersion(); break;
-  case 'help':
-  case '-h':
-  case '--help':
-  default:
-    cmdHelp(); break;
-}
+const program = new Command();
 
-// ── Commands ──────────────────────────────────────────────────────────────────
+program
+  .name('mama')
+  .description(color(C.cyan + C.bold, 'MamaLang') + ' – Bengali meme programming language 🇧🇩')
+  .version(VERSION, '-v, --version');
 
-function cmdHelp() {
-  console.log(`
-${bold(cyan('MamaLang v' + VERSION))} – Bengali meme programming language 🇧🇩
+// ── mama run ─────────────────────────────────────────────────────────────────
 
-${bold('Usage:')}
-  mama run <file>          Compile and run a .mama file
-  mama compile <file>      Compile .mama → .js  (use -o <out> to set output path)
-  mama repl                Start interactive REPL
-  mama init [directory]    Scaffold a new MamaLang project
-  mama version             Print version
+program
+  .command('run <file>')
+  .description('Compile and run a .mama file')
+  .option('--debug', 'Print compiled JS before executing')
+  .action(async (file: string, options: { debug?: boolean }) => {
+    const absPath = path.resolve(file);
+    if (!fs.existsSync(absPath)) {
+      console.error(color(C.red, `✗ File not found: ${absPath}`));
+      process.exit(1);
+    }
+    const source = fs.readFileSync(absPath, 'utf-8');
 
-${bold('Examples:')}
-  mama run hello.mama
-  mama compile app.mama -o app.js
-  mama repl
-`);
-}
+    let result;
+    try {
+      result = compile(source, { filename: path.basename(file) });
+    } catch (err) {
+      printCompileError(err);
+      process.exit(1);
+    }
 
-function cmdVersion() {
-  console.log(bold(cyan(`MamaLang v${VERSION}`)));
-  console.log(`Node.js ${process.version}`);
-}
+    if (options.debug) {
+      console.log(color(C.yellow, '── Compiled JS ──────────────────────────────────'));
+      console.log(result.js);
+      console.log(color(C.yellow, '─────────────────────────────────────────────────'));
+    }
 
-function cmdRun(args: string[]) {
-  const file = args.find(a => !a.startsWith('-'));
-  const debug = args.includes('--debug');
-  if (!file) { console.error(red('✗ Usage: mama run <file.mama>')); process.exit(1); }
-
-  const absPath = path.resolve(file);
-  if (!fs.existsSync(absPath)) { console.error(red(`✗ File not found: ${absPath}`)); process.exit(1); }
-
-  const source = fs.readFileSync(absPath, 'utf-8');
-  let result: ReturnType<typeof compile>;
-  try {
-    result = compile(source, { filename: path.basename(file) });
-  } catch (err) {
-    printError(err); process.exit(1);
-  }
-
-  if (debug) {
-    console.log(yellow('── Compiled JS ──────────────────────────────────'));
-    console.log(result!.js);
-    console.log(yellow('─────────────────────────────────────────────────'));
-  }
-
-  const tmpFile = path.join(os.tmpdir(), `__mama_${Date.now()}.js`);
-  fs.writeFileSync(tmpFile, result!.js);
-  try {
-    require(tmpFile);
-  } finally {
-    setTimeout(() => { try { fs.unlinkSync(tmpFile); } catch { /**/ } }, 500);
-  }
-}
-
-function cmdCompile(args: string[]) {
-  const fileIdx = args.findIndex(a => !a.startsWith('-'));
-  const file = args[fileIdx];
-  const outIdx = args.indexOf('-o');
-  const outArg = outIdx !== -1 ? args[outIdx + 1] : undefined;
-
-  if (!file) { console.error(red('✗ Usage: mama compile <file.mama> [-o output.js]')); process.exit(1); }
-
-  const absPath = path.resolve(file);
-  if (!fs.existsSync(absPath)) { console.error(red(`✗ File not found: ${absPath}`)); process.exit(1); }
-
-  const source = fs.readFileSync(absPath, 'utf-8');
-  let result: ReturnType<typeof compile>;
-  try {
-    result = compile(source, { filename: path.basename(file) });
-  } catch (err) {
-    printError(err); process.exit(1);
-  }
-
-  const outPath = outArg ? path.resolve(outArg) : absPath.replace(/\.mama$/, '.js');
-  fs.writeFileSync(outPath, result!.js);
-
-  if (result!.warnings.length > 0) result!.warnings.forEach(w => console.warn(yellow(`⚠  ${w}`)));
-  console.log(green('✓ Compiled successfully'));
-  console.log(cyan(`  ${path.basename(outPath)} generated`));
-}
-
-function cmdRepl() {
-  console.log(`\n  ${bold(cyan('MamaLang REPL v' + VERSION))}`);
-  console.log(magenta('  Type MamaLang code and press Enter.'));
-  console.log(magenta('  Type .exit or Ctrl+C to quit.\n'));
-
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: cyan('mama> ') });
-  let buffer = '';
-  let depth = 0;
-
-  rl.prompt();
-
-  rl.on('line', async (line: string) => {
-    for (const ch of line) { if (ch === '{') depth++; else if (ch === '}') depth--; }
-    buffer += line + '\n';
-
-    if (depth <= 0) {
-      const src = buffer.trim();
-      buffer = ''; depth = 0;
-      if (src === '.exit') { console.log(yellow('Bye! 👋')); process.exit(0); }
-      if (src.length > 0) {
-        try {
-          const { js } = compile(src, { filename: 'repl' });
-          const tmp = path.join(os.tmpdir(), `__mama_repl_${Date.now()}.js`);
-          fs.writeFileSync(tmp, js);
-          try {
-            delete require.cache[require.resolve(tmp)];
-            require(tmp);
-            await new Promise(r => setTimeout(r, 150));
-          } finally {
-            try { fs.unlinkSync(tmp); } catch { /**/ }
-          }
-        } catch (err) {
-          console.error(err instanceof CompileError ? red(err.message) : red(String(err)));
-        }
-      }
-      rl.prompt();
-    } else {
-      process.stdout.write(cyan('....  '));
+    // Write a temp file and execute it with Node
+    const tmpFile = path.join(
+      require('os').tmpdir(),
+      `__mama_${Date.now()}.js`,
+    );
+    fs.writeFileSync(tmpFile, result.js);
+    try {
+      require(tmpFile);
+    } finally {
+      // Clean up temp file after a tick
+      setTimeout(() => {
+        try { fs.unlinkSync(tmpFile); } catch { /* ignore */ }
+      }, 500);
     }
   });
 
-  rl.on('close', () => { console.log(yellow('\nBye! 👋')); process.exit(0); });
-}
+// ── mama compile ─────────────────────────────────────────────────────────────
 
-function cmdInit(args: string[]) {
-  const dir = args[0] ?? '.';
-  const target = path.resolve(dir);
-  fs.mkdirSync(target, { recursive: true });
+program
+  .command('compile <file>')
+  .description('Compile a .mama file to JavaScript')
+  .option('-o, --output <path>', 'Output file path')
+  .action((file: string, options: { output?: string }) => {
+    const absPath = path.resolve(file);
+    if (!fs.existsSync(absPath)) {
+      console.error(color(C.red, `✗ File not found: ${absPath}`));
+      process.exit(1);
+    }
+    const source = fs.readFileSync(absPath, 'utf-8');
 
-  fs.writeFileSync(path.join(target, 'hello.mama'), `// MamaLang Hello World
+    let result;
+    try {
+      result = compile(source, { filename: path.basename(file) });
+    } catch (err) {
+      printCompileError(err);
+      process.exit(1);
+    }
+
+    const outPath = options.output ?? absPath.replace(/\.mama$/, '.js');
+    fs.writeFileSync(outPath, result.js);
+
+    if (result.warnings.length > 0) {
+      result.warnings.forEach(w => console.warn(color(C.yellow, `⚠  ${w}`)));
+    }
+
+    console.log(color(C.green, `✓ Compiled successfully`));
+    console.log(color(C.cyan,  `  ${path.basename(outPath)} generated`));
+  });
+
+// ── mama repl ────────────────────────────────────────────────────────────────
+
+program
+  .command('repl')
+  .description('Start the MamaLang interactive REPL')
+  .action(async () => {
+    console.log(color(C.cyan + C.bold, '\n  MamaLang REPL v' + VERSION));
+    console.log(color(C.magenta, '  Type MamaLang code and press Enter to run.'));
+    console.log(color(C.magenta, '  Type .exit or press Ctrl+C to quit.\n'));
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      prompt: color(C.cyan, 'mama> '),
+    });
+
+    let buffer = '';
+    let depth = 0; // brace depth for multi-line input
+
+    rl.prompt();
+
+    rl.on('line', async (line: string) => {
+      // Count brace depth
+      for (const ch of line) {
+        if (ch === '{') depth++;
+        if (ch === '}') depth--;
+      }
+      buffer += line + '\n';
+
+      // When all braces are closed (or single-line), run the buffer
+      if (depth <= 0) {
+        const src = buffer.trim();
+        buffer = '';
+        depth = 0;
+
+        if (src === '.exit') {
+          console.log(color(C.yellow, 'Bye! 👋'));
+          process.exit(0);
+        }
+
+        if (src.length > 0) {
+          try {
+            const { js } = compile(src, { filename: 'repl', noWrapper: false });
+            // Suppress the preamble for REPL output and just eval the body
+            await evalInContext(js);
+          } catch (err) {
+            if (err instanceof CompileError) {
+              console.error(color(C.red, err.message));
+            } else {
+              console.error(color(C.red, String(err)));
+            }
+          }
+        }
+        rl.prompt();
+      } else {
+        // Continuation prompt
+        process.stdout.write(color(C.cyan, '....  '));
+      }
+    });
+
+    rl.on('close', () => {
+      console.log(color(C.yellow, '\nBye! 👋'));
+      process.exit(0);
+    });
+  });
+
+// ── mama version ─────────────────────────────────────────────────────────────
+
+program
+  .command('version')
+  .description('Print MamaLang version')
+  .action(() => {
+    console.log(color(C.cyan + C.bold, `MamaLang v${VERSION}`));
+    console.log(`Node.js ${process.version}`);
+  });
+
+// ── mama init ────────────────────────────────────────────────────────────────
+
+program
+  .command('init [directory]')
+  .description('Scaffold a new MamaLang project')
+  .action((dir: string = '.') => {
+    const target = path.resolve(dir);
+    fs.mkdirSync(target, { recursive: true });
+
+    const helloSrc = `// MamaLang Hello World
 mama bolo("Assalamu Alaikum, Duniya! 🌍")
 
 mama dhori naam = "Mama"
-mama bolo("Tomar naam: " + naam)
+mama bolo("Tomar naam ki? " + naam)
 
 mama dhori boyosh = 20
 mama jodi (boyosh >= 18) {
-    mama bolo("Tumi boro!")
+    mama bolo("Tumi boro")
 } mama nahole {
-    mama bolo("Tumi choto!")
+    mama bolo("Tumi choto")
 }
-`);
+`;
 
-  fs.writeFileSync(path.join(target, 'package.json'), JSON.stringify({
-    name: path.basename(target), version: '0.1.0',
-    scripts: { start: 'mama run hello.mama' }
-  }, null, 2));
+    fs.writeFileSync(path.join(target, 'hello.mama'), helloSrc);
 
-  fs.writeFileSync(path.join(target, '.gitignore'), 'node_modules\n*.js\ndist\n');
+    const pkgJson = {
+      name: path.basename(target),
+      version: '0.1.0',
+      description: 'A MamaLang project',
+      scripts: { start: 'mama run hello.mama' },
+    };
+    fs.writeFileSync(
+      path.join(target, 'package.json'),
+      JSON.stringify(pkgJson, null, 2),
+    );
 
-  console.log(green('✓ Project created!'));
-  console.log(cyan(`  cd ${dir !== '.' ? dir : '.'}`));
-  console.log(cyan('  mama run hello.mama'));
-}
+    fs.writeFileSync(
+      path.join(target, '.gitignore'),
+      'node_modules\n*.js\ndist\n',
+    );
 
-function printError(err: unknown) {
+    console.log(color(C.green,  '✓ Project created!'));
+    console.log(color(C.cyan,   `  cd ${dir !== '.' ? dir : '.'}`));
+    console.log(color(C.cyan,   '  mama run hello.mama'));
+  });
+
+// ── Error formatter ───────────────────────────────────────────────────────────
+
+function printCompileError(err: unknown): void {
   if (err instanceof CompileError) {
-    console.error(bold(red('✗ Compile Error')));
-    console.error(red(err.message));
+    console.error(color(C.red + C.bold, '✗ Compile Error'));
+    console.error(color(C.red, err.message));
   } else {
-    console.error(red(String(err)));
+    console.error(color(C.red, String(err)));
   }
 }
+
+// ── REPL eval helper ─────────────────────────────────────────────────────────
+
+async function evalInContext(js: string): Promise<void> {
+  const tmpFile = path.join(require('os').tmpdir(), `__mama_repl_${Date.now()}.js`);
+  fs.writeFileSync(tmpFile, js);
+  try {
+    // Clear require cache for repeated evals in the REPL
+    delete require.cache[require.resolve(tmpFile)];
+    require(tmpFile);
+    // Small wait so async IIFE output is flushed before next prompt
+    await new Promise(r => setTimeout(r, 150));
+  } finally {
+    try { fs.unlinkSync(tmpFile); } catch { /* ignore */ }
+  }
+}
+
+// ── Parse & run ───────────────────────────────────────────────────────────────
+
+program.parse(process.argv);

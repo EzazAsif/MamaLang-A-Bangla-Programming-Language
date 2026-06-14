@@ -8,21 +8,20 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepare": "tsc",
+    "dev": "tsc --watch",
     "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
     "prepublishOnly": "npm run build && npm test"
   },
-  "keywords": [
-    "mamalang",
-    "bengali",
-    "meme",
-    "programming",
-    "language",
-    "transpiler"
-  ],
+  "keywords": ["mamalang", "bengali", "meme", "programming", "language", "transpiler"],
   "author": "MamaLang Contributors",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "readline": "^1.3.0"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/jest": "^29.0.0",
@@ -35,12 +34,8 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "testMatch": [
-      "**/tests/**/*.test.ts"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.ts"
-    ],
+    "testMatch": ["**/tests/**/*.test.ts"],
+    "collectCoverageFrom": ["src/**/*.ts"],
     "coverageThreshold": {
       "global": {
         "branches": 80,
@@ -55,7 +50,6 @@
   },
   "files": [
     "dist/**/*",
-    "src/**/*",
     "README.md"
   ]
 }
