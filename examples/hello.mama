@@ -2,8 +2,7 @@
 
 mama bolo("Assalamu Alaikum, Duniya! 🌍")
 
-mama dhori naam = "Rafid"
-mama dhori boyosh = 18
-mama bolo("Tumi ki jano? Ami " + naam + " bolchi! ebong amar boyosh " + boyosh)
+mama dhori naam = "MamaLang"
+mama bolo("Tumi ki jano? Ami " + naam + " bolchi!")
 
 mama hasi()
